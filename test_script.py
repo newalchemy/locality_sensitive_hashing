@@ -16,7 +16,7 @@ starttime = time.time();
 #assume a max edit distance of 49
 #TheN S = N/(R+1) = 120
 length_of_dna_sequence = 600;
-num_of_dna_samples = 1000000;
+num_of_dna_samples = 10;
 shingle_size = 20;
 
 sample = DnaSequenceDataSample.DnaSequenceDataSample(length_of_dna_sequence, num_of_dna_samples);

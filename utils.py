@@ -38,8 +38,8 @@ def int_to_dna_letter(int_value):
 
 #There needs to be a more optimal way of doing this
 def shingle_sequence(dna_sequence, shingle_size):
-    ks_out = ks.shingleseqs_k(dna_sequence, shingle_size);
-    out = tuple(ks_out[shingle_size - 1]);
+    ks_out = ks.shingleseqs_range(dna_sequence, n_min=shingle_size, n_max=shingle_size);
+    out = tuple(ks_out[0]);
     return out;
 
 #test

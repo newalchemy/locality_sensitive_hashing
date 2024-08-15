@@ -52,6 +52,9 @@ class DnaSequenceDataSample:
     def getShingleSize(self):
         return self.shingle_size;
     
+    def computeAllPairsEditDistance(self):
+        
+        return;
             
         
         
