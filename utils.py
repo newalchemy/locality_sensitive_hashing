@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug 15 09:52:23 2024
+
+Utils functions to be used in multiple experiments.
 
 
-
-@author: patri
 """
 
 import random;
+import kshingle as ks;
 
 def generate_random_dna_sequence(length, seed=-1):
     
@@ -35,7 +35,10 @@ def int_to_dna_letter(int_value):
         return 'C'
     else:
         raise Exception('Invalid value passed to int_to_dna_letter');
-   
+
+def shingle_sequence(dna_sequence, shingle_size):
+    out = ks.shingleseqs_k(dna_sequence, shingle_size);
+    return out;
 
 #test
 
