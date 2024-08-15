@@ -29,7 +29,23 @@ class DnaSequenceDataSample:
     
     def getSeed(self):
         return self.seed;
-
     
+    def shingleThisSample(self, shingle_size):
+        # returns a dictionary {sample, shingle sequence}
+        
+        # Note:  Future improvement to this may be to store all returns each time this method is called, 
+        # and provide a separate getter to return all shinglings.
+        
+        ret = {};
+        
+        for i in range(0, self.num_of_samples):
+            shingled = utils.shingle_sequence(self.sample_list[i], shingle_size);
+            ret.update(self.sample_list[i], shingled);
+        
+        return ret;
+    
+            
+        
+        
             
         
