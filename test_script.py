@@ -9,18 +9,21 @@ import lshShingleDB;
 import DnaSequenceDataSample;
 import time;
 import utils;
+import pickle;
 
 starttime = time.time();
 
 #assume a max edit distance of 49
 #TheN S = N/(R+1) = 120
-length_of_dna_sequence = 6000;
-num_of_dna_samples = 1000;
-single_size = 120;
+length_of_dna_sequence = 600;
+num_of_dna_samples = 1000000;
+shingle_size = 20;
 
 sample = DnaSequenceDataSample.DnaSequenceDataSample(length_of_dna_sequence, num_of_dna_samples);
-shingle_dict = sample.shingleThisSample(single_size);
-shingleDB = lshShingleDB.lshShingleDB(shingle_dict, single_size);
+sample.shingleThisSample(shingle_size);
+with open('C:/Users/patri/OneDrive/Desktop/id_mapping_backup/sample.pkl', 'wb') as f:
+    pickle.dump(sample, f);
+shingleDB = lshShingleDB.lshShingleDB(sample);
 
 endtime = time.time();
 

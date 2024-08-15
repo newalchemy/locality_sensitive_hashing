@@ -11,9 +11,10 @@ import utils;
 
 class lshShingleDB:
     
-    def __init__(self, sample_to_shingle_dict, shingle_size):
-        self.sample_to_shingle_dict = sample_to_shingle_dict;
-        self.shingle_size = shingle_size;
+    def __init__(self, sample):
+        self.sample = sample;
+        self.sample_to_shingle_dict = sample.getShinglingDict();
+        self.shingle_size = sample.getShingleSize();
         self.__generateLSHShingleDB();
         
         
@@ -39,23 +40,38 @@ class lshShingleDB:
         for i in range(0, self.num_of_sequences):
             cur_seq = self.list_of_dna_sequences[i];
             shingles = self.sample_to_shingle_dict.get(cur_seq);
+            known_shingles = set();
             for j in range (0, len(shingles)):
                 my_shingle = shingles[j];
-                new_entry = [(my_shingle, cur_seq)];
+                
+                if (my_shingle in known_shingles):
+                    continue;
+                
+                k= self.shingle_to_sample_dict.get(my_shingle);
+                if k:
+                    ent = self.shingle_to_sample_dict.get(my_shingle);
+                    ent.append(cur_seq);
+                    new_entry = [(my_shingle, ent)];                    
+                else:
+                    new_entry = [(my_shingle, [cur_seq])];
                 self.shingle_to_sample_dict.update(new_entry);
+                known_shingles.add(my_shingle);
+                
         
-    # 'Naive' method, simplist to program, used to prove correctness for later updates.
     def getLocalSamples(self, query_dna_sequence):
         #Given a query DNA sequence, return all 'local' samples based on the LSH scheme.
         shingles = utils.shingle_sequence(query_dna_sequence, self.shingle_size);
-        out_samples = set();
+        out_set = set();
         
         for i in range(0, len(shingles)):
             my_shingle = shingles[i];
             sample = self.shingle_to_sample_dict.get(my_shingle);
             
-            out_samples.add(sample);
+            out_set = set();
+            if (sample != None):
+                out_set.update(sample);
         
+        out_samples = list(out_set);
         return out_samples;
             
             
