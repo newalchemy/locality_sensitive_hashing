@@ -64,7 +64,8 @@ class DnaSequenceDataSample:
             s1 = self.sample_list[i];
             for j in range(i + 1, self.num_of_samples):
                 s2 = self.sample_list[j];
-                key = [s1,s2]; # sort?
+                #only because I can't sort for some reason.  will make queries take longer.  fix later.
+                key = s1.join(s2);
                 val = editdistance.eval(s1, s2);
                 list_to_update.append((key, val));
                 
