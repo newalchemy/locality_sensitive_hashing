@@ -5,6 +5,7 @@ Created on Thu Aug 15 10:12:45 2024
 @author: patri
 """
 import utils;
+import editdistance;
 
 class DnaSequenceDataSample:
         
@@ -21,6 +22,7 @@ class DnaSequenceDataSample:
             cur_sample = utils.generate_random_dna_sequence(self.length_string, self.seed);
             self.sample_list.append(cur_sample);
         
+        self.computeAllPairsEditDistance();
     
     def getLengthDNAString(self):
         return self.length_string;
@@ -53,8 +55,20 @@ class DnaSequenceDataSample:
         return self.shingle_size;
     
     def computeAllPairsEditDistance(self):
+        #Brute force
+        #Compute all pairs of an edit distance.
         
-        return;
+        self.all_pairs_dict = {};
+        list_to_update = []
+        for i in range(0, self.num_of_samples):
+            s1 = self.sample_list[i];
+            for j in range(i + 1, self.num_of_samples):
+                s2 = self.sample_list[j];
+                key = [s1,s2]; # sort?
+                val = editdistance.eval(s1, s2);
+                list_to_update.append((key, val));
+                
+        self.all_pairs_dict.update([(key, val)]);        
             
         
         

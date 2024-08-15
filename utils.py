@@ -14,11 +14,13 @@ def generate_random_dna_sequence(length, seed=-1):
     if (seed != -1):
         random.seed(seed);
     
-    return_sequence = "";
+    return_sequence_list = [];
     for i in range(0, length):
         val = random.randint(0,3);
         cur_char = int_to_dna_letter(val);
-        return_sequence = return_sequence + cur_char;
+        return_sequence_list.append(cur_char);
+        
+    return_sequence = ''.join(return_sequence_list);
     
     return return_sequence;
     
