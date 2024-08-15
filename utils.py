@@ -36,8 +36,10 @@ def int_to_dna_letter(int_value):
     else:
         raise Exception('Invalid value passed to int_to_dna_letter');
 
+#There needs to be a more optimal way of doing this
 def shingle_sequence(dna_sequence, shingle_size):
-    out = ks.shingleseqs_k(dna_sequence, shingle_size);
+    ks_out = ks.shingleseqs_k(dna_sequence, shingle_size);
+    out = tuple(ks_out[shingle_size - 1]);
     return out;
 
 #test

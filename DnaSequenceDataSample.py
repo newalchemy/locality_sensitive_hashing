@@ -40,7 +40,9 @@ class DnaSequenceDataSample:
         
         for i in range(0, self.num_of_samples):
             shingled = utils.shingle_sequence(self.sample_list[i], shingle_size);
-            ret.update(self.sample_list[i], shingled);
+            my_sample = self.sample_list[i];
+            update = [(my_sample, shingled)];
+            ret.update(update);
         
         return ret;
     
