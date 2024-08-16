@@ -44,6 +44,15 @@ def shingle_sequence(dna_sequence, shingle_size):
     out = tuple(ks_out[0]);
     return out;
 
+def occurrences_of_shingle(sample, shingle):
+    count = start = 0
+    while True:
+        start = sample.find(shingle, start) + 1
+        if start > 0:
+            count+=1
+        else:
+            return count
+
 #test
 
 #test_seq = generate_random_dna_sequence(200);

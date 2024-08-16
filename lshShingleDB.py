@@ -12,8 +12,7 @@ import utils;
 class lshShingleDB:
     
     def __init__(self, sample):
-        self.sample = sample;
-        self.sample_to_shingle_dict = sample.getShinglingDict();
+        self.Sample = sample;
         self.shingle_size = sample.getShingleSize();
         self.__generateLSHShingleDB();
         
@@ -24,6 +23,25 @@ class lshShingleDB:
     def getSampleToShingleDict(self):
         return self.sample_to_shingle_dict;
     
+    def getSamplesByShingle(self, shingle_str):
+        shingle_id = self.sample.getShingleIDbyShingle(shingle_str);
+        return self.getSamplesByShingleId(shingle_id);
+    
+    def getSamplesByShingleId(self, shingle_id):
+        sampleIds = self.getSampleIdsByShingleId(shingle_id);
+        samples = [];
+        for i in range(0, len(sampleIds)):
+            my_sample_id = sampleIds[i];
+            sample_str = self.Sample.getSamplebySampleID(my_sample_id);
+            samples.append(sample_str);
+        return samples;
+            
+    
+    def getSampleIdsByShingleId(self, shingle_id):
+        sampleIds = self.shingleID_to_sampleID_dict.get(shingle_id);
+        return sampleIds;
+
+    
     def __generateLSHShingleDB(self):
         
         #Inverts the sample_to_shingle dictionry.
@@ -31,31 +49,27 @@ class lshShingleDB:
         #goes shingle -> list of samples.
         
         #mapping of shingle to string
-        self.shingle_to_sample_dict = {};
+        self.shingleID_to_sampleID_dict = {-1 : -1 };
         
-        self.list_of_dna_sequences = list(self.sample_to_shingle_dict.keys());
         
-        self.num_of_sequences = len(self.list_of_dna_sequences);
+        self.num_of_sequences = self.Sample.getNumOfDNASamples();
+        
         
         for i in range(0, self.num_of_sequences):
-            cur_seq = self.list_of_dna_sequences[i];
-            shingles = self.sample_to_shingle_dict.get(cur_seq);
-            known_shingles = set();
-            for j in range (0, len(shingles)):
-                my_shingle = shingles[j];
+            cur_seq_id = i;
+            list_of_shingle_ids = self.Sample.getShingleIdsBySampleId(cur_seq_id);
+            for j in range (0, len(list_of_shingle_ids)):
+                my_shingle_id = list_of_shingle_ids[j];
                 
-                if (my_shingle in known_shingles):
-                    continue;
-                
-                k= self.shingle_to_sample_dict.get(my_shingle);
+                #If the shingleid is already in the dictionary, update the dictionary.  Otherwise create a totally new entry.
+                k = self.shingleID_to_sampleID_dict.get(my_shingle_id);
                 if k:
-                    ent = self.shingle_to_sample_dict.get(my_shingle);
-                    ent.append(cur_seq);
-                    new_entry = [(my_shingle, ent)];                    
+                    ent = self.shingleID_to_sampleID_dict.get(my_shingle_id);
+                    ent.append(cur_seq_id);
+                    new_entry = [(my_shingle_id, ent)];                    
                 else:
-                    new_entry = [(my_shingle, [cur_seq])];
-                self.shingle_to_sample_dict.update(new_entry);
-                known_shingles.add(my_shingle);
+                    new_entry = [(my_shingle_id, [cur_seq_id])];
+                self.shingleID_to_sampleID_dict.update(new_entry);
                 
         
     def getLocalSamples(self, query_dna_sequence):
