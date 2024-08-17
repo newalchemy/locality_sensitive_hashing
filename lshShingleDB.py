@@ -24,7 +24,10 @@ class lshShingleDB:
         return self.sample_to_shingle_dict;
     
     def getSamplesByShingle(self, shingle_str):
-        shingle_id = self.sample.getShingleIDbyShingle(shingle_str);
+        shingle_id = self.Sample.getShingleIDbyShingle(shingle_str);
+
+        if (shingle_id == -1):
+            return None;
         return self.getSamplesByShingleId(shingle_id);
     
     def getSamplesByShingleId(self, shingle_id):
@@ -40,6 +43,12 @@ class lshShingleDB:
     def getSampleIdsByShingleId(self, shingle_id):
         sampleIds = self.shingleID_to_sampleID_dict.get(shingle_id);
         return sampleIds;
+
+    def deleteSampleTable(self):
+      del self.Sample;
+
+    def setSampleTable(self, Sample):
+      self.Sample = Sample;
 
     
     def __generateLSHShingleDB(self):
@@ -79,9 +88,8 @@ class lshShingleDB:
         
         for i in range(0, len(shingles)):
             my_shingle = shingles[i];
-            sample = self.shingle_to_sample_dict.get(my_shingle);
+            sample_list = self.getSamplesByShingle.get(my_shingle);
             
-            out_set = set();
             if (sample != None):
                 out_set.update(sample);
         

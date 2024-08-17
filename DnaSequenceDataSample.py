@@ -16,26 +16,23 @@ class DnaSequenceDataSample:
         self.num_of_samples = num_of_samples;
         self.seed = -1;
         self.shingle_size = shingle_size;
-
         
         self.sample_list = [];
         
         self.sampleID_sample_map = TwoWayDict.TwoWayDict();
+        self.generateRandomSamples();
+        self.shingleThisSample();
         
-        print('creating random samples\n');
-        for i in range(0, num_of_samples):
-            cur_sample = utils.generate_random_dna_sequence(self.length_string, self.seed);
-            self.sampleID_sample_map[i] = cur_sample;
-            
-        
-        print('generated random samples\n');
-        
-        self.shingleThisSample()
-        #print('created random samples, computing all pairs edit distance \n');
+                #print('created random samples, computing all pairs edit distance \n');
         
         #self.computeAllPairsEditDistance();
         
         #print('completed all pairs edit distance\n');
+        
+    def generateRandomSamples(self):
+        for i in range(0, self.num_of_samples):
+            cur_sample = utils.generate_random_dna_sequence(self.length_string, self.seed);
+            self.sampleID_sample_map[i] = cur_sample;
     
     def getSampleIdSampleMap(self):
         return self.sampleID_sample_map;
@@ -111,7 +108,10 @@ class DnaSequenceDataSample:
         return self.sampleID_sample_map[sample_id];
     
     def getShingleIDbyShingle(self, shingle_str):
+      try:
         return self.shingleID_shingle_map[shingle_str];
+      except KeyError:
+        return -1;
     
     def getShinglebyShingleID(self, shingle_id):
         return self.shingleID_shingle_map[shingle_id];
