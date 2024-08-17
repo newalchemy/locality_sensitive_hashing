@@ -41,7 +41,7 @@ class DnaSequenceDataSampleAndLSHTable:
         
         for i in range(0, len(shingles)):
             my_shingle = shingles[i];
-            sample_list = self.getSamplesByShingle.get(my_shingle);
+            sample_list = self.getSamplesByShingle(my_shingle);
             
             if (sample_list != None):
                 out_set.update(query_dna_sequence);
