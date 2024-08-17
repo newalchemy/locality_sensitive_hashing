@@ -43,7 +43,7 @@ class DnaSequenceDataSampleAndLSHTable:
             my_shingle = shingles[i];
             sample_list = self.getSamplesByShingle.get(my_shingle);
             
-            if (query_dna_sequence != None):
+            if (sample_list != None):
                 out_set.update(query_dna_sequence);
         
         out_samples = list(out_set);
@@ -61,34 +61,35 @@ class DnaSequenceDataSampleAndLSHTable:
         #For now, each sample can only have one shingling.  If the need arises this can be changed.
         
         #sample id to shingle id list
-        known_shingles = set();
         
         itervar = 0;
                 
-        
+        # O(M)
         for i in range(0, self.num_of_samples):
             my_sample = self.getSamplebySampleID(i);
             shingles = utils.shingle_sequence(my_sample, self.shingle_size);
             
-            shingle_id_set = set();
+            shingle_id_for_doc_set = set();
+            #O(N)
             for j in range(0, len(shingles)):
                 my_shingle = shingles[j];
                 
                 #Create / Fetch unique shingle ID
                 
                 #If we've already seen the shingle, retrieve its id for the list
-                if (my_shingle in known_shingles):
+                shingle_id = self.getShingleIDbyShingle(my_shingle);
+
+                if (shingle_id != -1):
                     shingle_id = self.getShingleIDbyShingle(my_shingle);
-                    shingle_id_set.add(shingle_id);
+                    shingle_id_for_doc_set.add(shingle_id);
                     
                 #Otherwise, create a new id for it and add it to the known shingle list.
                 else:
                     shingle_id = itervar;
                     self.shingleID_shingle_map[shingle_id] = my_shingle;
-                    shingle_id_set.add(shingle_id);
+                    shingle_id_for_doc_set.add(shingle_id);
                 
                     itervar = itervar + 1;
-                    known_shingles.add(my_shingle); 
                     
                     
                 # Now update the shingleID to sampleId dictionary
@@ -108,9 +109,9 @@ class DnaSequenceDataSampleAndLSHTable:
                     self.shingleID_to_sampleID_dict.update(new_entry);
 
 
-            shingle_id_list = list(shingle_id_set);
+            shingle_id_for_doc_list = list(shingle_id_for_doc_set);
 
-            update = [(i, shingle_id_list)];
+            update = [(i, shingle_id_for_doc_list)];
             self.sampleID_to_shingleID_dict.update(update);
             self.shingleID_to_sampleID_dict.pop(-1, -1);
 
@@ -176,7 +177,7 @@ class DnaSequenceDataSampleAndLSHTable:
     
     
     def getSamplesByShingle(self, shingle_str):
-        shingle_id = self.Sample.getShingleIDbyShingle(shingle_str);
+        shingle_id = self.getShingleIDbyShingle(shingle_str);
 
         if (shingle_id == -1):
             return None;
@@ -184,10 +185,6 @@ class DnaSequenceDataSampleAndLSHTable:
     
     def getSamplesByShingleId(self, shingle_id):
         sampleIds = self.getSampleIdsByShingleId(shingle_id);
-        
-        #debug
-        if (any(sampleIds.count(x) > 1 for x in sampleIds)):
-            bp = 'bp';
         
         samples = [];
         

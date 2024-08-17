@@ -91,7 +91,10 @@ for i in range(0, num_shingle_ids):
                 overlap_sample_list.append(my_sample);
         except TypeError:
             bp = 'bp';
-    passed = collections.Counter(overlap_sample_list) == collections.Counter( lsh_sample_list);
+    passed1 = collections.Counter(overlap_sample_list) == collections.Counter(lsh_sample_list);
+    passed2 = len(lsh_sample_list) > 0;
+    passed = passed1 and passed2;
+    
     if not passed:
         print('LSH vs overlap test failed \n');
         print('elms in overlap: ', len(overlap_sample_list), '\n');
