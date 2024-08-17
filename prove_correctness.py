@@ -27,8 +27,7 @@ test_sample = sample.getSamplebySampleID(test_id[0]);
 
 test_seq = utils.generate_random_dna_sequence(length_of_dna_sequence);
 
-intersect, intersect_size, shing_size = utils.find_longest_shingle_between_two_strings(test_seq, test_sample);
-
+out_dict = sample.computeAllEditDistancesForQuery(test_seq);
 
 #Verify shingling was done correctly
 for i in range(0, num_of_dna_samples):

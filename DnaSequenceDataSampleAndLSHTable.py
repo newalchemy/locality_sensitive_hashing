@@ -193,6 +193,23 @@ class DnaSequenceDataSampleAndLSHTable:
     def getSampleIdsByShingleId(self, shingle_id):
         sampleIds = self.shingleID_to_sampleID_dict.get(shingle_id);
         return sampleIds;
+    
+    def computeAllEditDistancesForQuery(self, query_dna_str, limit= -1):
+        #Return all strings less than or equal to edit distance @param limit.  If Limit is -1, then return all.
+        # Returns dictionary of sampleid : edit distance from query string mapping
+        sample_ids = self.getAllSampleIds();
+        
+        out_list = [];
+        for i in range(0, self.num_of_samples):
+            my_sample_id = sample_ids[i];
+            my_samp = self.getSamplebySampleID(my_sample_id);
+            
+            dist = editdistance.eval(query_dna_str, my_samp);
+            if ((limit != -1 and dist <= limit) or limit == -1):
+                dict_val = (my_sample_id, dist);
+                out_list.append(dict_val);
+        return out_list;
+        
 
 
     def computeAllPairsEditDistance(self):
