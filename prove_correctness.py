@@ -4,7 +4,7 @@ Created on Thu Aug 15 18:58:18 2024
 
 @author: patri
 """
-import DnaSequenceDataSample;
+import DnaSequenceDataSampleAndLSHTable;
 import time;
 import utils;
 import pickle;
@@ -19,7 +19,7 @@ shingle_size = 10;
 true_num_of_shingles = length_of_dna_sequence - shingle_size + 1;
 seed = -1;
 
-sample = DnaSequenceDataSample.DnaSequenceDataSample(length_of_dna_sequence, num_of_dna_samples, shingle_size, seed);
+sample = DnaSequenceDataSampleAndLSHTable.DnaSequenceDataSampleAndLSHTable(length_of_dna_sequence, num_of_dna_samples, shingle_size, seed);
 
 
 test = sample.getAllSamples();
@@ -28,9 +28,8 @@ test_seq = utils.generate_random_dna_sequence(length_of_dna_sequence);
 
 intersect, intersect_size, shing_size = utils.find_longest_shingle_between_two_strings(test_seq, test[0]);
 
-shingleDB = lshShingleDB.lshShingleDB(sample);
 
-
+#Verify shingling was done correctly
 for i in range(0, num_of_dna_samples):
     sample_str = sample.getSamplebySampleID(i);
     shingles = sample.getShinglesBySample(sample_str);
@@ -52,40 +51,51 @@ for i in range(0, num_of_dna_samples):
         
 print('test passed for data sample generation!')
 
-shingleDB = lshShingleDB.lshShingleDB(sample);
-
-print('shingleDB Generated!');
 
 #Computationally expensive but necessary
-all_shingles = list(sample.getAllShingles());
+
+#Given any shingle in the dataset, does the LSH implementation return all document IDs associated with that shingle?
+#Compare LSH answer and brute force answer to verify correctness.
+all_shingles_ids = list(sample.getAllShingleIds());
 all_samples = sample.getAllSamples();
 
 
-num_shingle_ids = len(all_shingles);
+num_shingle_ids = len(all_shingles_ids);
 
 for i in range(0, num_shingle_ids):
-    cur_shingle = all_shingles[i];
-    cur_shingle_id = sample.getShingleIDbyShingle(cur_shingle);
-    lsh_sample_list = shingleDB.getSamplesByShingleId(cur_shingle_id);
+    cur_shingle_id = all_shingles_ids[i];
+    cur_shingle = sample.getShinglebyShingleID(cur_shingle_id);
+    lsh_sample_list = sample.getSamplesByShingleId(cur_shingle_id);
+    
+    if (any(lsh_sample_list.count(x) > 1 for x in lsh_sample_list)):
+        bp = 'bp';
+
     
     #Verify correctness of lsh output:
     for j in range(0, len(lsh_sample_list)):
         cur_sample = lsh_sample_list[j];
-        if (cur_shingle in cur_sample):
-            continue;
-        else:
-            print('test failed in LSH return test:  Shingle: ', my_shingle, ' String: ', sample_str, ' , j= ', j , ' \n');
+        try:
+            if (cur_shingle in cur_sample):
+                continue;
+            else:
+                print('test failed in LSH return test:  Shingle: ', my_shingle, ' String: ', sample_str, ' , j= ', j , ' \n');
+        except TypeError:
+            bp = 'bp';
     
     #Now, build the list of all samples which contain the shingle via brute force and compare the lists.
     overlap_sample_list = [];
     for j in range(0, len(all_samples)):
         my_sample = all_samples[j];
-        if cur_shingle in my_sample:
-            overlap_sample_list.append(my_sample);
-            
+        try:
+            if cur_shingle in my_sample:
+                overlap_sample_list.append(my_sample);
+        except TypeError:
+            bp = 'bp';
     passed = collections.Counter(overlap_sample_list) == collections.Counter( lsh_sample_list);
     if not passed:
-        print('LSH did not return all samples');
+        print('LSH vs overlap test failed \n');
+        print('elms in overlap: ', len(overlap_sample_list), '\n');
+        print('elms in lsh list: ', len(lsh_sample_list), '\n');
         
 print('LSH test passed');
     

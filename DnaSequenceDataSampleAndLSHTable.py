@@ -17,11 +17,16 @@ class DnaSequenceDataSampleAndLSHTable:
         self.seed = -1;
         self.shingle_size = shingle_size;
         
-        self.sample_list = [];
         
         self.sampleID_sample_map = TwoWayDict.TwoWayDict();
-        self.generateRandomSamples();
-        self.shingleThisSampleAndBuildLSHTable();
+        self.shingleID_shingle_map = TwoWayDict.TwoWayDict();
+        self.sampleID_to_shingleID_dict = {};
+        #this is the LSH table.  Needs an initial entry to avoid key error.
+        self.shingleID_to_sampleID_dict = {-1 : -1 };
+
+
+        self.__generateRandomSamples();
+        self.__shingleThisSampleAndBuildLSHTable();
         
                 #print('created random samples, computing all pairs edit distance \n');
         
@@ -29,49 +34,37 @@ class DnaSequenceDataSampleAndLSHTable:
         
         #print('completed all pairs edit distance\n');
         
-    def generateRandomSamples(self):
+    def getLocalSamples(self, query_dna_sequence):
+        #Given a query DNA sequence, return all 'local' samples based on the LSH scheme.
+        shingles = utils.shingle_sequence(query_dna_sequence, self.shingle_size);
+        out_set = set();
+        
+        for i in range(0, len(shingles)):
+            my_shingle = shingles[i];
+            sample_list = self.getSamplesByShingle.get(my_shingle);
+            
+            if (query_dna_sequence != None):
+                out_set.update(query_dna_sequence);
+        
+        out_samples = list(out_set);
+        return out_samples;
+
+
+    def __generateRandomSamples(self):
         for i in range(0, self.num_of_samples):
             cur_sample = utils.generate_random_dna_sequence(self.length_string, self.seed);
             self.sampleID_sample_map[i] = cur_sample;
-    
-    def getSampleIdSampleMap(self):
-        return self.sampleID_sample_map;
-    
-    def getLengthDNAString(self):
-        return self.length_string;
-    
-    def getNumOfDNASamples(self):
-        return self.num_of_samples;
-    
-    def getSeed(self):
-        return self.seed;
-    
-    def getAllShingles(self):
-        return self.known_shingles;
-    
-    def getAllSamples(self):
-                
-        sample_list = [];
-        for i in range(0, self.num_of_samples):
-            sample = self.sampleID_sample_map[i];
-            sample_list.append(sample);
-        return sample_list;
             
-        
-    def shingleThisSampleAndBuildLSHTable(self):
+    def __shingleThisSampleAndBuildLSHTable(self):
         # Creates a dictionary of sample id - > [list of shingle ids]
 
         #For now, each sample can only have one shingling.  If the need arises this can be changed.
         
         #sample id to shingle id list
-        self.shingling_dict = {};
         known_shingles = set();
-        self.shingleID_to_sampleID_dict = {-1 : -1 };
         
         itervar = 0;
-        
-        self.shingleID_shingle_map = TwoWayDict.TwoWayDict();
-        
+                
         
         for i in range(0, self.num_of_samples):
             my_sample = self.getSamplebySampleID(i);
@@ -95,24 +88,55 @@ class DnaSequenceDataSampleAndLSHTable:
                     shingle_id_set.add(shingle_id);
                 
                     itervar = itervar + 1;
-                    known_shingles.add(my_shingle);      
+                    known_shingles.add(my_shingle); 
+                    
                     
                 # Now update the shingleID to sampleId dictionary
                 k = self.shingleID_to_sampleID_dict.get(shingle_id);
+                
+                #Do we already have this shingle ID stored from a previous iteration?  If so, add the document to the dictionary - taking care not to duplicate the doc id
                 if k:
                     ent = self.shingleID_to_sampleID_dict.get(shingle_id);
-                    ent.append(my_sample);
-                    new_entry = [(shingle_id, ent)];                    
+                    if (ent.count(i) == 0):
+                        ent.append(i);
+                        new_entry = [(shingle_id, ent)];   
+                        self.shingleID_to_sampleID_dict.update(new_entry);
+                
+                #otherwise create a new entry.
                 else:
                     new_entry = [(shingle_id, [i])];
-                self.shingleID_to_sampleID_dict.update(new_entry);
+                    self.shingleID_to_sampleID_dict.update(new_entry);
 
 
             shingle_id_list = list(shingle_id_set);
 
             update = [(i, shingle_id_list)];
-            self.shingling_dict.update(update);
-                            
+            self.sampleID_to_shingleID_dict.update(update);
+            self.shingleID_to_sampleID_dict.pop(-1, -1);
+
+    
+    def getSampleIdSampleMap(self):
+        return self.sampleID_sample_map;
+    
+    def getLengthDNAString(self):
+        return self.length_string;
+    
+    def getNumOfDNASamples(self):
+        return self.num_of_samples;
+    
+    def getSeed(self):
+        return self.seed;
+    
+    def getAllShingleIds(self):
+        return self.shingleID_to_sampleID_dict.keys();
+    
+    def getAllSamples(self):
+                
+        sample_list = [];
+        for i in range(0, self.num_of_samples):
+            sample = self.sampleID_sample_map[i];
+            sample_list.append(sample);
+        return sample_list;
         
         
     def getSampleIDbySample(self, sample_str):
@@ -131,10 +155,10 @@ class DnaSequenceDataSampleAndLSHTable:
         return self.shingleID_shingle_map[shingle_id];
     
     def getShingleIdsBySampleId(self, sample_id):
-        return self.shingling_dict[sample_id];
+        return self.sampleID_to_shingleID_dict[sample_id];
 
     def getShinglesBySampleId(self, sample_id):
-        shingle_id_list = self.shingling_dict[sample_id];
+        shingle_id_list = self.sampleID_to_shingleID_dict[sample_id];
         shingles_list = [];
         for j in range(0, len(shingle_id_list)):
             my_shingle_id = shingle_id_list[j];
@@ -146,13 +170,40 @@ class DnaSequenceDataSampleAndLSHTable:
         sample_id = self.getSampleIDbySample(sample_str);
         return self.getShinglesBySampleId(sample_id);
 
-        
-    def getShinglingDict(self):
-        return self.shingling_dict;
-    
+            
     def getShingleSize(self):
         return self.shingle_size;
     
+    
+    def getSamplesByShingle(self, shingle_str):
+        shingle_id = self.Sample.getShingleIDbyShingle(shingle_str);
+
+        if (shingle_id == -1):
+            return None;
+        return self.getSamplesByShingleId(shingle_id);
+    
+    def getSamplesByShingleId(self, shingle_id):
+        sampleIds = self.getSampleIdsByShingleId(shingle_id);
+        
+        #debug
+        if (any(sampleIds.count(x) > 1 for x in sampleIds)):
+            bp = 'bp';
+        
+        samples = [];
+        
+        if (sampleIds != None):
+            for i in range(0, len(sampleIds)):
+                my_sample_id = sampleIds[i];
+                sample_str = self.getSamplebySampleID(my_sample_id);
+                samples.append(sample_str);
+        return samples;
+            
+    
+    def getSampleIdsByShingleId(self, shingle_id):
+        sampleIds = self.shingleID_to_sampleID_dict.get(shingle_id);
+        return sampleIds;
+
+
     def computeAllPairsEditDistance(self):
         #Brute force
         #Compute all pairs of an edit distance.

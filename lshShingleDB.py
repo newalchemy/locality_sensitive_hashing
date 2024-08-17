@@ -5,6 +5,8 @@ Created on Thu Aug 15 10:30:53 2024
 @author: patri
 """
 
+#  DEPRECATED
+
 #The speed/space optimization here is to use pointer tables in lieu of a direct mapping. 
 #It will be done in a future update.
 import utils;
