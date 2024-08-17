@@ -12,14 +12,23 @@ import lshShingleDB;
 import collections;
 
 length_of_dna_sequence = 1000;
-num_of_dna_samples = 5000;
+num_of_dna_samples = 50;
 shingle_size = 10;
 
 
 true_num_of_shingles = length_of_dna_sequence - shingle_size + 1;
-seed = -1
+seed = -1;
 
 sample = DnaSequenceDataSample.DnaSequenceDataSample(length_of_dna_sequence, num_of_dna_samples, shingle_size, seed);
+
+
+test = sample.getAllSamples();
+
+test_seq = utils.generate_random_dna_sequence(length_of_dna_sequence);
+
+intersect, intersect_size, shing_size = utils.find_longest_shingle_between_two_strings(test_seq, test[0]);
+
+shingleDB = lshShingleDB.lshShingleDB(sample);
 
 
 for i in range(0, num_of_dna_samples):
