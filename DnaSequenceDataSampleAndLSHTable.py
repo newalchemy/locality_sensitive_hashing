@@ -129,16 +129,10 @@ class DnaSequenceDataSampleAndLSHTable:
         return self.seed;
     
     def getAllShingleIds(self):
-        return self.shingleID_to_sampleID_dict.keys();
+        return list(self.sampleID_to_shingleID_dict.keys());
     
-    def getAllSamples(self):
-                
-        sample_list = [];
-        for i in range(0, self.num_of_samples):
-            sample = self.sampleID_sample_map[i];
-            sample_list.append(sample);
-        return sample_list;
-        
+    def getAllSampleIds(self):
+        return list(self.sampleID_to_shingleID_dict.keys());        
         
     def getSampleIDbySample(self, sample_str):
         return self.sampleID_sample_map[sample_str];

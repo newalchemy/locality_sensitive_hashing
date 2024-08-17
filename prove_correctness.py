@@ -22,11 +22,12 @@ seed = -1;
 sample = DnaSequenceDataSampleAndLSHTable.DnaSequenceDataSampleAndLSHTable(length_of_dna_sequence, num_of_dna_samples, shingle_size, seed);
 
 
-test = sample.getAllSamples();
+test_id = sample.getAllSampleIds();
+test_sample = sample.getSamplebySampleID(test_id[0]);
 
 test_seq = utils.generate_random_dna_sequence(length_of_dna_sequence);
 
-intersect, intersect_size, shing_size = utils.find_longest_shingle_between_two_strings(test_seq, test[0]);
+intersect, intersect_size, shing_size = utils.find_longest_shingle_between_two_strings(test_seq, test_sample);
 
 
 #Verify shingling was done correctly
@@ -57,7 +58,7 @@ print('test passed for data sample generation!')
 #Given any shingle in the dataset, does the LSH implementation return all document IDs associated with that shingle?
 #Compare LSH answer and brute force answer to verify correctness.
 all_shingles_ids = list(sample.getAllShingleIds());
-all_samples = sample.getAllSamples();
+all_samples_ids = sample.getAllSampleIds();
 
 
 num_shingle_ids = len(all_shingles_ids);
@@ -65,32 +66,28 @@ num_shingle_ids = len(all_shingles_ids);
 for i in range(0, num_shingle_ids):
     cur_shingle_id = all_shingles_ids[i];
     cur_shingle = sample.getShinglebyShingleID(cur_shingle_id);
+    
+    #This is querying the LSH Database (Shingle Id - > [list of document IDs])
     lsh_sample_list = sample.getSamplesByShingleId(cur_shingle_id);
     
-    if (any(lsh_sample_list.count(x) > 1 for x in lsh_sample_list)):
-        bp = 'bp';
-
     
     #Verify correctness of lsh output:
     for j in range(0, len(lsh_sample_list)):
         cur_sample = lsh_sample_list[j];
-        try:
-            if (cur_shingle in cur_sample):
-                continue;
-            else:
-                print('test failed in LSH return test:  Shingle: ', my_shingle, ' String: ', sample_str, ' , j= ', j , ' \n');
-        except TypeError:
-            bp = 'bp';
+        if (cur_shingle in cur_sample):
+            continue;
+        else:
+            print('test failed in LSH return test:  Shingle: ', my_shingle, ' String: ', sample_str, ' , j= ', j , ' \n');
     
     #Now, build the list of all samples which contain the shingle via brute force and compare the lists.
     overlap_sample_list = [];
-    for j in range(0, len(all_samples)):
-        my_sample = all_samples[j];
-        try:
-            if cur_shingle in my_sample:
-                overlap_sample_list.append(my_sample);
-        except TypeError:
-            bp = 'bp';
+    for j in range(0, len(all_samples_ids)):
+        my_sample_id = all_samples_ids[j];
+        my_sample = sample.getSamplebySampleID(my_sample_id);
+        if cur_shingle in my_sample:
+            overlap_sample_list.append(my_sample);
+            
+            
     passed1 = collections.Counter(overlap_sample_list) == collections.Counter(lsh_sample_list);
     passed2 = len(lsh_sample_list) > 0;
     passed = passed1 and passed2;
