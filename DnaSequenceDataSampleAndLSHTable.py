@@ -7,16 +7,23 @@ Created on Thu Aug 15 10:12:45 2024
 import utils;
 import editdistance;
 import TwoWayDict;
+import math;
+import random;
 
 class DnaSequenceDataSampleAndLSHTable:
         
         
-    def __init__(self, length_string, num_of_samples, shingle_size, seed=-1):
+    def __init__(self, length_string, num_of_samples, shingle_size, sampling_choice = 1, maximum_edit_distance = -1, num_dna_seeds = -1, num_of_changes_per_seq = -1,  seed=-1):
+        #Sampling choice 1 requires no additional params
+        #Sampling choice 2 requires maximum_edit_distance, num_dna_seeds, num_changes_per_seq
+        #Sampling choice 3 requires maximum_edit_distance
         self.length_string = length_string;
         self.num_of_samples = num_of_samples;
-        self.seed = -1;
+        self.seed = seed;
         self.shingle_size = shingle_size;
-        
+        self.num_dna_seeds = -1; 
+        self.maximum_edit_distance = -1; 
+        self.sampling_choice = sampling_choice;
         
         self.sampleID_sample_map = TwoWayDict.TwoWayDict();
         self.shingleID_shingle_map = TwoWayDict.TwoWayDict();
@@ -25,8 +32,20 @@ class DnaSequenceDataSampleAndLSHTable:
         self.shingleID_to_sampleID_dict = {-1 : -1 };
 
 
-        self.__generateRandomSamples();
+        #Basic random sample
+        if (sampling_choice == 1):
+            self.__generateRandomSamples();
+        #Guided random sample
+        elif(sampling_choice == 2):
+            self.__generateGuidedRandomSamples(self.num_dna_seeds);
+        #Centered random sample
+        elif(sampling_choice == 3):
+            self.__generateCenteredRandomSample();
+        else:
+            raise Exception("Bad sampling choice passed.  Sampling choice int:  ", sampling_choice, " valid values are 1,2,3")
+            
         self.__shingleThisSampleAndBuildLSHTable();
+
         
                 #print('created random samples, computing all pairs edit distance \n');
         
@@ -54,6 +73,55 @@ class DnaSequenceDataSampleAndLSHTable:
         for i in range(0, self.num_of_samples):
             cur_sample = utils.generate_random_dna_sequence(self.length_string, self.seed);
             self.sampleID_sample_map[i] = cur_sample;
+            
+    def __generateGuidedRandomSamples(self, num_random_dna_seeds):
+        iter_var = 0;
+        
+        #Put the seed DNA samples at the front of the dictionary
+        #That's why we do this for loop twice
+        for i in range(0, self.num_random_dna_seeds):
+            cur_sample = utils.generate_random_dna_sequence(self.length_string, self.seed);
+            self.sampleID_sample_map[i] = cur_sample;
+            iter_var = iter_var + 1;
+            
+        self.num_replicas_per_seed = math.floor(self.num_of_samples/self.num_dna_seeds);
+        for i in range(0, self.num_random_dna_seeds):
+            cur_sample = self.getSamplebySampleID(i);
+            for j in range(0, self.num_replicas_per_seed):
+                #Edit distance computation is very expensive, so we won't do it here.
+                my_seq = utils.change_N_edit_distance_in_DNA_seq(cur_sample, self.num_of_changes_per_seq);
+                self.sampleID_sample_map[iter_var] = my_seq;
+                iter_var = iter_var + 1;
+        
+        #If there's any remaining due to the floor operation, just start populating 
+        while (iter_var < self.num_of_samples):
+            samp_inx = random.randint(0, self.num_random_dna_seeds);
+            cur_sample = self.getSamplebySampleID(samp_inx);
+            my_seq = utils.change_N_edit_distance_in_DNA_seq(cur_sample, self.num_of_changes_per_seq);
+            self.sampleID_sample_map[iter_var] = my_seq;
+            iter_var = iter_var + 1;
+        
+    def __generateCenteredRandomSample(self):
+        #Not implemented yet
+        centered_sample = utils.generate_random_dna_sequence(self.length_string, self.seed);
+        self.sampleID_sample_map[0] = centered_sample;
+        
+        iter_var = 1;
+        vals_each_distance = math.floor(self.num_of_samples / self.maximum_edit_distance);
+        
+        for j in range(1, self.maximum_edit_distance):
+            for r in range(1, vals_each_distance):
+                my_seq = utils.change_N_edit_distance_in_DNA_seq(centered_sample, j);
+                self.sampleID_sample_map[iter_var] = my_seq;
+                iter_var = iter_var + 1;
+        
+        #Fill the rest with random distances
+        while (iter_var < self.num_of_samples):
+            my_dist = random.randint(1, self.maximum_edit_distance);
+            my_seq = utils.change_N_edit_distance_in_DNA_seq(centered_sample, my_dist);
+            self.sampleID_sample_map[iter_var] = my_seq;
+            iter_var = iter_var + 1;
+        
             
     def __shingleThisSampleAndBuildLSHTable(self):
         # Creates a dictionary of sample id - > [list of shingle ids]
@@ -194,6 +262,7 @@ class DnaSequenceDataSampleAndLSHTable:
         sampleIds = self.shingleID_to_sampleID_dict.get(shingle_id);
         return sampleIds;
     
+    #Brute force method.  Bad runtime.
     def computeAllEditDistancesForQuery(self, query_dna_str, limit= -1):
         #Return all strings less than or equal to edit distance @param limit.  If Limit is -1, then return all.
         # Returns dictionary of sampleid : edit distance from query string mapping
