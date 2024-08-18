@@ -7,25 +7,41 @@ Created on Fri Aug 16 17:37:23 2024
 
 import utils;
 import editdistance;
-from fixed_edit_distance import randomWithFixedDistance;
 import time;
 
 
 dna_seq_length = 1000;
 
-monte_carlos = 100000;
+edit_dist_input = 10;
+
+monte_carlos = 10000;
 startime = time.time();
 
+dict_log = {};
+print('edit distance input ', edit_dist_input, '\n');
 
 for i in range(0, monte_carlos):
     test_seq = utils.generate_random_dna_sequence(dna_seq_length);
-
-
-    new_seq = utils.change_N_edit_distance_in_DNA_seq(test_seq, 7);
-
+    
+    new_seq = utils.change_N_edit_distance_in_DNA_seq(test_seq, edit_dist_input);
+    
+    edit_dist1 = editdistance.eval(test_seq, new_seq);
+    
+    try:
+        val = dict_log[edit_dist1];
+    except KeyError:
+        val = 0;
+    
+    val = val + 1;
+    
+    dict_log[edit_dist1] = val;
+    
+    #print('mc ', i, ' edit distance ', edit_dist1, '\n');
     if (len(new_seq) != len(test_seq)):
         raise Exception('test failed');
     
+
+print(dict_log);
 
 endtime = time.time();
 elapsed = endtime - startime;
