@@ -57,13 +57,14 @@ def dna_letter_to_int(dna_letter):
         
 
 def change_N_edit_distance_in_DNA_seq(dna_seq, num_changes_to_make):
-    
+
     out_dna_seq = copy.copy(dna_seq);
     
     seq_length = len(dna_seq);
     
     for i in range(0, num_changes_to_make):
-        change_choice_int = random.randint(0,1);
+        #change_choice_int = random.randint(0,10);
+        change_choice_int = 1;
         
         inx_char_to_change = random.randint(0, seq_length - 1);
         
@@ -119,7 +120,7 @@ def occurrences_of_shingle(sample, shingle):
         else:
             return count
 
-# REALLY inefficient but difflib doesn't work for the program's needs...
+# REALLY inefficient but also REALLY convinent ...
 def find_longest_shingle_between_two_strings(string1, string2):
     # returns intersection shingles, number of intersecting shingles, size of shingles
     intersection = 1;
