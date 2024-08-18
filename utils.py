@@ -12,6 +12,7 @@ from difflib import SequenceMatcher;
 #from cdifflib import CSequenceMatcher;
 import copy;
 import math;
+import editdistance;
 
 def generate_random_dna_sequence(length, seed=-1):
     
@@ -54,15 +55,35 @@ def dna_letter_to_int(dna_letter):
         return 3
     else:
         raise Exception('Invalid value passed to dna_letter_to_int');
-        
 
-def change_N_edit_distance_in_DNA_seq(dna_seq, num_changes_to_make):
+def computeAllEditDistancesForQuery_standalone(query_dna_str, sample_id_to_sample_dict, limit= -1):
+    #Return all strings less than or equal to edit distance @param limit.  If Limit is -1, then return all.
+    # Returns dictionary of sampleid : edit distance from query string mapping
+    sample_ids = list(sample_id_to_sample_dict.keys());
 
+    num_of_samples = len(sample_ids);
+    out_list = [];
+    for i in range(0, num_of_samples):
+        my_sample_id = sample_ids[i];
+        my_samp = sample_id_to_sample_dict.get(my_sample_id);
+            
+        dist = editdistance.eval(query_dna_str, my_samp);
+        if ((limit != -1 and dist <= limit) or limit == -1):
+            dict_val = (my_sample_id, dist);
+            out_list.append(dict_val);
+    return out_list;
+
+
+def change_2N_edit_distance_in_DNA_seq(dna_seq, num_changes_to_make_N):
+    #Edit distance of sequence returned will be between N and 2N, tending towards 2N as N becomes smaller.
+    #N = 5 -> ~90% probability of 2N
+    #N = 10 -> 70% probability of 2N 
+    
     out_dna_seq = copy.copy(dna_seq);
     
     seq_length = len(dna_seq);
     
-    for i in range(0, num_changes_to_make):
+    for i in range(0, num_changes_to_make_N):
         #change_choice_int = random.randint(0,10);
         change_choice_int = 1;
         
