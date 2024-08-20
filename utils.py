@@ -56,16 +56,15 @@ def dna_letter_to_int(dna_letter):
     else:
         raise Exception('Invalid value passed to dna_letter_to_int');
 
-def computeAllEditDistancesForQuery_standalone(query_dna_str, sample_id_to_sample_dict, limit= -1):
+def computeAllEditDistancesForQuery(query_dna_str, sample_id_to_sample_dict, limit= -1):
     #Return all strings less than or equal to edit distance @param limit.  If Limit is -1, then return all.
     # Returns dictionary of sampleid : edit distance from query string mapping
-    sample_ids = list(sample_id_to_sample_dict.keys());
+    num_of_samples = int(len(sample_id_to_sample_dict.keys())/2);
 
-    num_of_samples = len(sample_ids);
     out_list = [];
     for i in range(0, num_of_samples):
-        my_sample_id = sample_ids[i];
-        my_samp = sample_id_to_sample_dict.get(my_sample_id);
+        my_sample_id = i;
+        my_samp = sample_id_to_sample_dict[my_sample_id];
             
         dist = editdistance.eval(query_dna_str, my_samp);
         if ((limit != -1 and dist <= limit) or limit == -1):
@@ -162,6 +161,25 @@ def find_longest_shingle_between_two_strings(string1, string2):
     
     return prev_intersection, prev_intersect_size, shingle_size;
 #test
+
+def edit_distance(str1, str2, max_dist=-1):
+    m, n = len(str1), len(str2)
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+
+    for i in range(m + 1):
+        dp[i][0] = i
+    for j in range(n + 1):
+        dp[0][j] = j
+
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if str1[i - 1] == str2[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1]
+            else:
+                dp[i][j] = 1 + min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
+            if (max_dist != -1 and dp[i][j] > max_dist):
+                    return -1;  # Exceeded maximum distance
+    return dp[m][n]
 
 #test_seq = generate_random_dna_sequence(200);
 #print(test_seq);
